@@ -4,7 +4,6 @@ from fastapi.testclient import TestClient
 from src.main import app
 from src.shared.db import get_pool
 from src.modules.mqtt.service import handle_mqtt_challenge
-from src.modules.mqtt.protocol import compute_canonical_digest
 
 client = TestClient(app)
 CANDIDATE_ID = "shopnil13"
@@ -36,6 +35,7 @@ def test_mqtt_challenge_success_and_idempotency():
     assert len(resp1["results"]) == 1
     assert resp1["results"][0]["status"] == "ACCEPTED"
     assert resp1["state"]["net_total"] == 100
+    assert "rejected_submissions" in resp1["state"]
 
     # 2. Repeated execution with identical payload (idempotency)
     resp2 = handle_mqtt_challenge(json.dumps(challenge_payload), candidate_id=CANDIDATE_ID)
@@ -72,13 +72,13 @@ def test_mqtt_challenge_conflict():
     resp1 = handle_mqtt_challenge(json.dumps(initial_payload), candidate_id=CANDIDATE_ID)
     assert resp1["status"] == "COMPLETED"
 
-    # Conflicting payload under same challenge_id
+    # Conflicting payload under same challenge_id (use valid quantity <= 500)
     conflict_payload = dict(initial_payload, events=[
         {
             "source_id": "line_mqtt",
             "event_id": "m_c2_diff",
             "type": "COUNT",
-            "quantity": 999,
+            "quantity": 250,
             "event_time": "2026-11-04T10:00:00Z"
         }
     ])
@@ -131,12 +131,13 @@ def test_mqtt_protocol_errors():
 
 
 def test_mqtt_status_endpoint():
-    """Verify GET /api/mqtt/status returns valid status and challenge counts."""
-    res = client.get("/api/mqtt/status")
-    assert res.status_code == 200
-    data = res.json()
-    assert "connected" in data
-    assert "candidate_id" in data
-    assert "completed_challenges" in data
-    assert "failed_challenges" in data
-    assert data["completed_challenges"] >= 0
+    """Verify GET /api/state?view=mqtt and /api/mqtt/status return valid status and challenge counts."""
+    for ep in ("/api/state?view=mqtt", "/api/mqtt/status"):
+        res = client.get(ep)
+        assert res.status_code == 200
+        data = res.json()
+        assert "connected" in data
+        assert "candidate_id" in data
+        assert "completed_challenges" in data
+        assert "failed_challenges" in data
+        assert data["completed_challenges"] >= 0

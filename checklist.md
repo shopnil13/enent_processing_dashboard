@@ -72,3 +72,17 @@
 - [x] Final verification of entire test suite and server startup
 - [x] Single clean commit: `docs(all): complete test suite, technical explanation, and user guide`
 
+
+
+## Change Request FSE-01: Quantity Ceiling & Rejected Submissions Metrics
+- [x] Enforce max production quantity validation (1 to 500 inclusive) in `src/modules/events/validation.py`
+- [x] Add `rejected_submissions` to `Summary` contract in `src/shared/contracts.py`
+- [x] Add `rejected_submissions` durable SQL metric to `src/modules/state/queries.py` and `routes.py`
+- [x] Support `GET /api/state?view=mqtt` to avoid unrequested endpoints while keeping backward compatibility
+- [x] Update frontend `frontend/src/api.ts` types and endpoints
+- [x] Add editable & clearable source ID text input filter in frontend header and dashboard
+- [x] Add visually distinct 7th indicator card "Rejected Submissions" in `frontend/src/components/SummaryCards.tsx`
+- [x] Update existing tests using quantities > 500 (`tests/test_mqtt.py`, `tests/test_state_and_ack.py`)
+- [x] Add tests for max quantity ceiling (`450` ACCEPTED, `501` REJECTED) and `rejected_submissions` summary count
+- [x] Rebuild frontend and verify all tests pass
+- [x] Single clean commit: `feat(cr-fse01): implement quantity ceiling, rejected metrics, and source input filter`

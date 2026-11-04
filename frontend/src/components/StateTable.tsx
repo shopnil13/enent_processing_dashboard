@@ -5,6 +5,7 @@ interface StateTableProps {
   pendingEvents: PendingEvent[];
   exceptions: SystemException[];
   loading: boolean;
+  selectedSource?: string;
   onRefresh: () => void;
 }
 
@@ -12,6 +13,7 @@ export const StateTable: React.FC<StateTableProps> = ({
   pendingEvents,
   exceptions,
   loading,
+  selectedSource,
   onRefresh,
 }) => {
   const [activeTab, setActiveTab] = useState<'pending' | 'exceptions'>('pending');
@@ -96,6 +98,13 @@ export const StateTable: React.FC<StateTableProps> = ({
         )}
       </div>
 
+      {selectedSource && (
+        <div className="mb-3 px-3 py-1.5 bg-slate-100 text-slate-700 text-xs rounded flex items-center justify-between">
+          <span>Active filter: <strong>{selectedSource}</strong></span>
+          <span className="text-[11px] text-slate-500">Showing filtered state view</span>
+        </div>
+      )}
+
       {ackFeedback && (
         <div className="mb-3 p-2 bg-blue-50 border border-blue-200 text-blue-800 text-xs rounded">
           {ackFeedback}
@@ -110,7 +119,9 @@ export const StateTable: React.FC<StateTableProps> = ({
         <div className="overflow-x-auto">
           {pendingEvents.length === 0 ? (
             <div className="text-center py-8 text-gray-400 text-sm">
-              No pending events to acknowledge. All processed counts are up to date!
+              {selectedSource
+                ? `No pending events found for source "${selectedSource}".`
+                : 'No pending events to acknowledge. All processed counts are up to date!'}
             </div>
           ) : (
             <table className="min-w-full text-xs">
@@ -163,7 +174,9 @@ export const StateTable: React.FC<StateTableProps> = ({
         <div className="overflow-x-auto">
           {exceptions.length === 0 ? (
             <div className="text-center py-8 text-gray-400 text-sm">
-              No exceptions recorded. All submissions clean!
+              {selectedSource
+                ? `No exceptions found for source "${selectedSource}".`
+                : 'No exceptions recorded. All submissions clean!'}
             </div>
           ) : (
             <table className="min-w-full text-xs">

@@ -5,6 +5,7 @@ export interface SummaryState {
   unresolved: number;
   duplicates: number;
   conflicts: number;
+  rejected_submissions: number;
 }
 
 export interface PendingEvent {
@@ -58,7 +59,7 @@ const API_BASE = '/api';
 
 export async function fetchSummary(sourceId?: string): Promise<SummaryState> {
   const query = new URLSearchParams({ view: 'summary' });
-  if (sourceId) query.append('source_id', sourceId);
+  if (sourceId && sourceId.trim()) query.append('source_id', sourceId.trim());
   const res = await fetch(`${API_BASE}/state?${query.toString()}`);
   if (!res.ok) throw new Error(`Failed to fetch summary: ${res.statusText}`);
   return res.json();
@@ -66,7 +67,7 @@ export async function fetchSummary(sourceId?: string): Promise<SummaryState> {
 
 export async function fetchPending(sourceId?: string): Promise<PendingEvent[]> {
   const query = new URLSearchParams({ view: 'pending' });
-  if (sourceId) query.append('source_id', sourceId);
+  if (sourceId && sourceId.trim()) query.append('source_id', sourceId.trim());
   const res = await fetch(`${API_BASE}/state?${query.toString()}`);
   if (!res.ok) throw new Error(`Failed to fetch pending events: ${res.statusText}`);
   const data = await res.json();
@@ -75,7 +76,7 @@ export async function fetchPending(sourceId?: string): Promise<PendingEvent[]> {
 
 export async function fetchExceptions(sourceId?: string): Promise<SystemException[]> {
   const query = new URLSearchParams({ view: 'exceptions' });
-  if (sourceId) query.append('source_id', sourceId);
+  if (sourceId && sourceId.trim()) query.append('source_id', sourceId.trim());
   const res = await fetch(`${API_BASE}/state?${query.toString()}`);
   if (!res.ok) throw new Error(`Failed to fetch exceptions: ${res.statusText}`);
   const data = await res.json();
@@ -90,7 +91,7 @@ export async function fetchSources(): Promise<string[]> {
 }
 
 export async function fetchMqttStatus(): Promise<MqttStatus> {
-  const res = await fetch(`${API_BASE}/mqtt/status`);
+  const res = await fetch(`${API_BASE}/state?view=mqtt`);
   if (!res.ok) throw new Error(`Failed to fetch MQTT status: ${res.statusText}`);
   return res.json();
 }

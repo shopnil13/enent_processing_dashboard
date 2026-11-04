@@ -12,8 +12,8 @@ A correct, production-grade modular monolith for event processing and production
 * **Strict Idempotency**:
   * Event-level: Exact re-submissions return `DUPLICATE` without double-counting; conflicting payloads under the same key return `CONFLICT` while preserving original data.
   * MQTT challenge-level: Canonical JSON SHA-256 digests ensure repeated challenges return pre-computed responses without reprocessing.
-* **Durable State Metrics**: All summary totals, pending queues, and exceptions are computed directly via optimized SQL on durable tables—no vulnerable in-memory counters.
-* **Self-Contained Unified Deployment**: The FastAPI application can directly serve the compiled React SPA from `frontend/dist` on a single port for seamless review.
+* **Durable State Metrics**: All summary totals, pending queues, exceptions, and rejected metrics are computed directly via optimized SQL on durable tables—no vulnerable in-memory counters.
+* **Self-Contained Unified Deployment**: The FastAPI application directly serves the compiled React SPA from `frontend/dist` on a single port for seamless review.
 
 ---
 
@@ -34,7 +34,7 @@ A correct, production-grade modular monolith for event processing and production
 
 ```
 ├── IMPLEMENTATION_PLAN.md      # Approved system blueprint and specifications
-├── checklist.md                # Milestone task tracker
+├── checklist.md                # Milestone & change request task tracker
 ├── migrations/
 │   ├── 001_init.sql            # Database schema DDL & indexes
 │   └── run_migrations.py       # Standalone migration execution runner
@@ -52,7 +52,7 @@ A correct, production-grade modular monolith for event processing and production
 ├── frontend/                   # React + Vite TypeScript SPA
 │   ├── src/                    # UI Components (SummaryCards, JsonSubmitForm, StateTable, MqttPanel)
 │   └── dist/                   # Production build served by FastAPI
-├── tests/                      # Full pytest test suite (22 tests)
+├── tests/                      # Full pytest test suite (25 tests)
 └── requirements.txt            # Python dependencies
 ```
 
@@ -134,8 +134,10 @@ The test suite runs against the dedicated test database (`fse01_test`), truncati
 .\.venv\Scripts\pytest -v
 ```
 
-All 22 test cases verify:
+All 25 test cases verify:
 * **Core Functionality**: Single & batch event ingestion, COUNT addition, immediate VOID application.
+* **CR FSE-01 Quantity Validation**: Quantities 1–500 accepted, $>500$ rejected with clear reason without increasing totals, applied identically across REST and MQTT.
+* **CR FSE-01 Summary Metrics**: `rejected_submissions` counts only rejected attempts, returns 0 when none exist, and respects source filtering.
 * **Idempotency & Conflicts**: Exact duplicates ignored without duplicate counts; conflicting payloads rejected while preserving existing records.
 * **VOID Resolution Order**: FIFO auto-resolution of pending VOIDs when their target COUNT arrives; winning VOID accepted, losing VOIDs rejected.
 * **State & Ack**: Repeated acknowledgment handling, NOT_READY for pending items, ALREADY_ACKED for re-submissions, durable summary calculations with source filtering.
@@ -170,7 +172,7 @@ Accepts a single event object or an array of event objects.
 }
 ```
 
-### State Reporting: `GET /api/state?view={summary|pending|exceptions}&source_id={optional}`
+### State Reporting: `GET /api/state?view={summary|pending|exceptions|mqtt}&source_id={optional}`
 * **`view=summary`**: Returns global or source-specific indicators:
   ```json
   {
@@ -179,11 +181,13 @@ Accepts a single event object or an array of event objects.
     "pending_ack": 1,
     "unresolved": 0,
     "duplicates": 0,
-    "conflicts": 0
+    "conflicts": 0,
+    "rejected_submissions": 0
   }
   ```
 * **`view=pending`**: Returns list of ACCEPTED COUNT events not yet acknowledged.
 * **`view=exceptions`**: Returns pending reference events, rejected events with failure reasons, and conflicting submission attempts.
+* **`view=mqtt`**: Returns live MQTT connection status and challenge metrics (folded into `/api/state` to maintain the 3 core endpoints).
 
 ### Acknowledgment: `POST /api/ack`
 Processes event IDs in request order inside one transaction:
@@ -203,25 +207,26 @@ Processes event IDs in request order inside one transaction:
 }
 ```
 
-### MQTT Status: `GET /api/mqtt/status`
-Returns real-time connection status and persistent challenge statistics:
-```json
-{
-  "connected": true,
-  "candidate_id": "shopnil13",
-  "broker": "152.42.238.142:1883",
-  "completed_challenges": 12,
-  "failed_challenges": 0,
-  "last_challenge_id": "chal_09",
-  "last_response_status": "COMPLETED"
-}
-```
-
 ---
 
-## 8. Live Review Preparation Answers
+## 8. Change Request FSE-01 Review Guide
 
-* **Entity Model**: `production_sources` (tracks sources), `production_events` (canonical logical events), `submission_attempts` (complete raw audit trail), and `mqtt_challenges` (challenge cache and idempotency log).
-* **Single Business Logic Rulebook**: `src/modules/events/service.py` is the single source of truth for COUNT/VOID rules. REST and MQTT call the exact same underlying function (`process_events`), ensuring zero divergence.
-* **Advisory Lock Concurrency**: `SELECT pg_advisory_xact_lock(hashtext(source_id || ':' || target_id))` ensures that concurrent COUNT and VOID requests targeting the same logical entity are serialized at the database level.
-* **Microservice Extraction Path**: Each module communicates via dataclasses and transaction-scoped domain events (`src/shared/domain_events.py`). Moving to microservices requires only replacing local function calls with gRPC/HTTP endpoints and connecting the domain event publisher to an external message broker (such as Kafka or RabbitMQ).
+* **01. Production Quantity Validation (`MAX_COUNT_QUANTITY = 500`)**:
+  * Implemented in `src/modules/events/validation.py`.
+  * Quantities must be integer between 1 and 500 inclusive. Any quantity $>500$ returns `REJECTED` with `"quantity exceeds maximum of 500"`.
+  * Logged in `submission_attempts` without incrementing logical totals.
+  * Shared by both REST and MQTT challenge handlers through the unified `validate_event()` entry point.
+* **02. `rejected_submissions` in Summary & MQTT State**:
+  * Added to `Summary` contract (`src/shared/contracts.py`) and durable SQL query (`src/modules/state/queries.py`).
+  * Counts stored submission attempts with status `REJECTED` only (excluding DUPLICATE, CONFLICT, and PENDING_REFERENCE).
+  * Returns 0 when none exist and respects the optional `source_id` filter.
+  * Embedded automatically in the MQTT challenge response's `state` object.
+* **03. Production Source Filter in Frontend**:
+  * Input with datalist autocomplete and instant clear (`✕`) button.
+  * Seamlessly filters Summary, Pending, and Exceptions views using backend `source_id` query parameter.
+* **04. Seventh Indicator ("Rejected Submissions")**:
+  * Rendered as an alert card in `frontend/src/components/SummaryCards.tsx` visually distinguished with red accenting.
+  * Updates live with polling and source selection.
+* **Architecture Preservation**:
+  * Zero rewrite required: the modular monolith function boundaries allowed adding the quantity ceiling in one validation constant and the rejected metric in one query subclause.
+  * Preserved the 3-endpoint REST footprint (`/api/events`, `/api/state`, `/api/ack`) with `GET /api/state?view=mqtt`.

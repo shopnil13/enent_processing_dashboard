@@ -5,7 +5,7 @@ from src.shared.contracts import Summary
 
 
 def query_summary(conn: psycopg.Connection, source_id: Optional[str] = None) -> Summary:
-    """Calculates all six summary metrics directly from durable database tables."""
+    """Calculates all summary metrics directly from durable database tables."""
     sql = """
     WITH count_totals AS (
         SELECT COALESCE(SUM(pe.quantity), 0) AS net_total
@@ -32,7 +32,8 @@ def query_summary(conn: psycopg.Connection, source_id: Optional[str] = None) -> 
     attempt_counts AS (
         SELECT
             COUNT(*) FILTER (WHERE classification = 'DUPLICATE') AS duplicates,
-            COUNT(*) FILTER (WHERE classification = 'CONFLICT') AS conflicts
+            COUNT(*) FILTER (WHERE classification = 'CONFLICT') AS conflicts,
+            COUNT(*) FILTER (WHERE classification = 'REJECTED') AS rejected_submissions
         FROM submission_attempts
         WHERE (%(source_id)s::text IS NULL OR source_id = %(source_id)s)
     )
@@ -42,7 +43,8 @@ def query_summary(conn: psycopg.Connection, source_id: Optional[str] = None) -> 
         ec.pending_ack,
         ec.unresolved,
         ac.duplicates,
-        ac.conflicts
+        ac.conflicts,
+        ac.rejected_submissions
     FROM count_totals ct
     CROSS JOIN event_counts ec
     CROSS JOIN attempt_counts ac;
@@ -57,7 +59,8 @@ def query_summary(conn: psycopg.Connection, source_id: Optional[str] = None) -> 
             pending_ack=int(row["pending_ack"]),
             unresolved=int(row["unresolved"]),
             duplicates=int(row["duplicates"]),
-            conflicts=int(row["conflicts"])
+            conflicts=int(row["conflicts"]),
+            rejected_submissions=int(row["rejected_submissions"])
         )
 
 
@@ -98,7 +101,6 @@ def query_exceptions(conn: psycopg.Connection, source_id: Optional[str] = None) 
     Exceptions = PENDING_REFERENCE events, REJECTED events/attempts (with reason), and CONFLICT attempts.
     Attempts without a usable source_id appear only when unfiltered.
     """
-    # 1. PENDING_REFERENCE and losing REJECTED events from production_events
     events_sql = """
         SELECT 
             id::text AS entry_id,
@@ -114,8 +116,6 @@ def query_exceptions(conn: psycopg.Connection, source_id: Optional[str] = None) 
           AND (%(source_id)s::text IS NULL OR source_id = %(source_id)s)
     """
 
-    # 2. REJECTED and CONFLICT attempts from submission_attempts
-    # Only show attempts if source_id is None OR if attempt.source_id matches source_id
     attempts_sql = """
         SELECT 
             ('att_' || id)::text AS entry_id,

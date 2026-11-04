@@ -2,6 +2,8 @@ from datetime import datetime, timezone
 from typing import Any
 from src.shared.contracts import ValidatedEvent, EventValidationError
 
+MAX_COUNT_QUANTITY = 500
+
 
 def validate_event(raw: Any) -> ValidatedEvent | EventValidationError:
     if not isinstance(raw, dict):
@@ -94,6 +96,13 @@ def validate_event(raw: Any) -> ValidatedEvent | EventValidationError:
         if not isinstance(quantity, int) or isinstance(quantity, bool) or quantity <= 0:
             return EventValidationError(
                 error=f"quantity must be a positive integer, got {quantity!r}",
+                raw=raw,
+                source_id=s_id_str,
+                event_id=e_id_str
+            )
+        if quantity > MAX_COUNT_QUANTITY:
+            return EventValidationError(
+                error=f"quantity exceeds maximum of {MAX_COUNT_QUANTITY}",
                 raw=raw,
                 source_id=s_id_str,
                 event_id=e_id_str

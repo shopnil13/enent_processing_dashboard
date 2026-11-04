@@ -36,7 +36,7 @@ export const App: React.FC = () => {
         fetchSummary(selectedSource || undefined),
         fetchPending(selectedSource || undefined),
         fetchExceptions(selectedSource || undefined),
-        fetchSources(),
+        fetchSources().catch(() => []),
         fetchMqttStatus().catch(() => null),
       ]);
 
@@ -76,24 +76,37 @@ export const App: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Source Filter */}
+            {/* Production Source Filter (Input + Clear) */}
             <div className="flex items-center gap-2">
-              <label htmlFor="source-filter" className="text-xs text-slate-300">
+              <label htmlFor="source-filter-input" className="text-xs text-slate-300 font-medium">
                 Source:
               </label>
-              <select
-                id="source-filter"
-                value={selectedSource}
-                onChange={(e) => setSelectedSource(e.target.value)}
-                className="bg-slate-800 text-white text-xs py-1.5 px-3 rounded border border-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              >
-                <option value="">All Sources (Global)</option>
-                {sources.map((src) => (
-                  <option key={src} value={src}>
-                    {src}
-                  </option>
-                ))}
-              </select>
+              <div className="relative flex items-center">
+                <input
+                  id="source-filter-input"
+                  type="text"
+                  placeholder="e.g. LINE-01 or select..."
+                  value={selectedSource}
+                  onChange={(e) => setSelectedSource(e.target.value)}
+                  list="known-sources"
+                  className="bg-slate-800 text-white text-xs py-1.5 pl-3 pr-7 rounded border border-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500 w-36 sm:w-48 font-mono"
+                />
+                <datalist id="known-sources">
+                  {sources.map((src) => (
+                    <option key={src} value={src} />
+                  ))}
+                </datalist>
+                {selectedSource && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedSource('')}
+                    title="Clear filter to view all sources"
+                    className="absolute right-2 text-slate-400 hover:text-white text-xs font-bold"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Refresh Button */}
@@ -122,7 +135,7 @@ export const App: React.FC = () => {
         {/* MQTT Status Panel */}
         <MqttPanel status={mqttStatus} loading={loading} />
 
-        {/* Summary Indicators */}
+        {/* Summary Indicators (7 Indicators including Rejected Submissions) */}
         <SummaryCards summary={summary} loading={loading} />
 
         {/* 2-Column Responsive Layout */}
@@ -135,6 +148,7 @@ export const App: React.FC = () => {
               pendingEvents={pendingEvents}
               exceptions={exceptions}
               loading={loading}
+              selectedSource={selectedSource || undefined}
               onRefresh={loadData}
             />
           </div>

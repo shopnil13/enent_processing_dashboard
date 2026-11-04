@@ -25,10 +25,6 @@ def test_repeated_ack_and_statuses():
     })
 
     # Test ACK with mixed conditions:
-    # - evt_ack_1: first is ACKED
-    # - evt_ack_1: repeated in same request is ALREADY_ACKED
-    # - void_pending: not accepted yet is NOT_READY
-    # - totally_missing: NOT_FOUND
     res = client.post("/api/ack", json={
         "event_ids": ["evt_ack_1", "evt_ack_1", "void_pending", "totally_missing"]
     })
@@ -46,7 +42,7 @@ def test_repeated_ack_and_statuses():
 
 
 def test_summary_metrics_and_source_filter():
-    """Verify all 6 summary metrics accurately calculated on durable data."""
+    """Verify all 7 summary metrics accurately calculated on durable data."""
     # 1. Accepted COUNT (qty 20) on line_1
     client.post("/api/events", json={
         "source_id": "line_1",
@@ -98,12 +94,21 @@ def test_summary_metrics_and_source_filter():
         "event_time": "2026-11-04T10:00:00Z"
     })
 
-    # 6. Conflict attempt on line_1
+    # 6. Conflict attempt on line_1 (different valid quantity <= 500)
     client.post("/api/events", json={
         "source_id": "line_1",
         "event_id": "c1",
         "type": "COUNT",
-        "quantity": 999,
+        "quantity": 300,
+        "event_time": "2026-11-04T10:00:00Z"
+    })
+
+    # 7. Rejected submission (quantity > 500 ceiling)
+    client.post("/api/events", json={
+        "source_id": "line_1",
+        "event_id": "c_exceed",
+        "type": "COUNT",
+        "quantity": 501,
         "event_time": "2026-11-04T10:00:00Z"
     })
 
@@ -113,10 +118,11 @@ def test_summary_metrics_and_source_filter():
     # Global summary check:
     # net_total: c1(20) + c3(50) = 70 (c2 was voided by v1)
     # processed_events: c1, c2, v1, c3 = 4
-    # pending_ack: c2, c3 = 2 (v1 is auto-acknowledged, c1 is acknowledged)
+    # pending_ack: c2, c3 = 2
     # unresolved: v_pending = 1
     # duplicates: 1
     # conflicts: 1
+    # rejected_submissions: 1
     res_global = client.get("/api/state?view=summary")
     assert res_global.status_code == 200
     s_global = res_global.json()
@@ -126,14 +132,9 @@ def test_summary_metrics_and_source_filter():
     assert s_global["unresolved"] == 1
     assert s_global["duplicates"] == 1
     assert s_global["conflicts"] == 1
+    assert s_global["rejected_submissions"] == 1
 
     # Filtered summary for line_1:
-    # net_total: c1(20) = 20
-    # processed_events: c1, c2, v1 = 3
-    # pending_ack: c2 = 1
-    # unresolved: 1
-    # duplicates: 1
-    # conflicts: 1
     res_l1 = client.get("/api/state?view=summary&source_id=line_1")
     s_l1 = res_l1.json()
     assert s_l1["net_total"] == 20
@@ -142,6 +143,12 @@ def test_summary_metrics_and_source_filter():
     assert s_l1["unresolved"] == 1
     assert s_l1["duplicates"] == 1
     assert s_l1["conflicts"] == 1
+    assert s_l1["rejected_submissions"] == 1
+
+    # Filtered summary for line_2 (no rejected submissions on line_2 -> 0):
+    res_l2 = client.get("/api/state?view=summary&source_id=line_2")
+    s_l2 = res_l2.json()
+    assert s_l2["rejected_submissions"] == 0
 
 
 def test_pending_and_exceptions_views():

@@ -46,6 +46,10 @@ body {
 .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
 .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
+@media (min-width: 640px) {
+  .sm\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
 @media (min-width: 768px) {
   .md\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .md\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
@@ -53,6 +57,7 @@ body {
 
 @media (min-width: 1024px) {
   .lg\:grid-cols-6 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .lg\:grid-cols-7 { grid-template-columns: repeat(7, minmax(0, 1fr)); }
   .lg\:grid-cols-12 { grid-template-columns: repeat(12, minmax(0, 1fr)); }
   .lg\:col-span-5 { grid-column: span 5 / span 12; }
   .lg\:col-span-7 { grid-column: span 7 / span 12; }
@@ -61,12 +66,16 @@ body {
 /* Header & Cards */
 .bg-slate-900 { background-color: #0f172a; }
 .bg-slate-800 { background-color: #1e293b; }
+.bg-slate-100 { background-color: #f1f5f9; }
 .bg-slate-50 { background-color: #f8fafc; }
 .bg-white { background-color: #ffffff; }
 .bg-gray-50 { background-color: #f9fafb; }
+.bg-red-50 { background-color: #fef2f2; }
 .bg-blue-600 { background-color: #2563eb; }
 .text-white { color: #ffffff; }
 .text-slate-900 { color: #0f172a; }
+.text-slate-700 { color: #334155; }
+.text-slate-500 { color: #64748b; }
 .text-slate-400 { color: #94a3b8; }
 .text-slate-300 { color: #cbd5e1; }
 .text-gray-900 { color: #111827; }
@@ -78,6 +87,7 @@ body {
 .text-green-600 { color: #16a34a; }
 .text-red-500 { color: #ef4444; }
 .text-red-600 { color: #dc2626; }
+.text-red-700 { color: #b91c1c; }
 
 .shadow-sm { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); }
 .shadow-md { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
@@ -99,6 +109,8 @@ body {
 .border-purple-500 { border-left-color: #a855f7 !important; }
 .border-slate-500 { border-left-color: #64748b !important; }
 .border-rose-500 { border-left-color: #f43f5e !important; }
+.border-orange-500 { border-left-color: #f97316 !important; }
+.border-red-500 { border-left-color: #ef4444 !important; }
 
 /* Buttons */
 .btn-primary {
