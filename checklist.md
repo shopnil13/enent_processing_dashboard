@@ -28,14 +28,14 @@
 - [x] Single clean commit: `feat(events): implement event ingestion, validation, and void resolution`
 
 ## Milestone 3: State & Acknowledgment Modules
-- [ ] Implement `src/modules/state/queries.py` & `service.py` (durable SQL summaries, pending events, exceptions)
-- [ ] Implement `src/modules/state/routes.py` (`GET /api/state?view=summary|pending|exceptions&source_id=`)
-- [ ] Implement `src/modules/ack/repository.py`, `service.py` & `routes.py` (`POST /api/ack`)
-- [ ] Mount state and ack routers in `src/main.py`
-- [ ] Implement required test:
+- [x] Implement `src/modules/state/queries.py` & `service.py` (durable SQL summaries, pending events, exceptions)
+- [x] Implement `src/modules/state/routes.py` (`GET /api/state?view=summary|pending|exceptions&source_id=`)
+- [x] Implement `src/modules/ack/repository.py`, `service.py` & `routes.py` (`POST /api/ack`)
+- [x] Mount state and ack routers in `src/main.py`
+- [x] Implement required test:
   - Test 4: Repeated ACK handling (`ACKED`, `ALREADY_ACKED`, `NOT_READY`, `NOT_FOUND`)
-- [ ] Verify all tests pass
-- [ ] Single clean commit: `feat(state): implement state reporting and event acknowledgment`
+- [x] Verify all tests pass
+- [x] Single clean commit: `feat(state): implement state reporting and event acknowledgment`
 
 ## Milestone 4: MQTT Worker Module
 - [ ] Implement `src/modules/mqtt/protocol.py` (envelope parsing, SHA-256 canonical digest)

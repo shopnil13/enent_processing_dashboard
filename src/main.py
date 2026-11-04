@@ -4,6 +4,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from src.shared.db import init_pool, close_pool
 from src.modules.events.routes import router as events_router
+from src.modules.state.routes import router as state_router
+from src.modules.ack.routes import router as ack_router
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 logger = logging.getLogger("app")
@@ -33,6 +35,8 @@ app.add_middleware(
 
 # Mount module routers
 app.include_router(events_router)
+app.include_router(state_router)
+app.include_router(ack_router)
 
 
 @app.get("/health")
