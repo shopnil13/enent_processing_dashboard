@@ -88,6 +88,22 @@ def get_challenge_counts(conn: Optional[psycopg.Connection] = None) -> tuple[int
             return 0, 0
 
 
+def get_latest_challenge_info(conn: Optional[psycopg.Connection] = None) -> Optional[dict[str, Any]]:
+    """Returns the most recent challenge metadata from durable storage."""
+    with get_connection(conn) as c:
+        with c.cursor(row_factory=dict_row) as cur:
+            cur.execute("""
+                SELECT challenge_id, status, responded_at
+                FROM mqtt_challenges
+                ORDER BY responded_at DESC
+                LIMIT 1;
+            """)
+            row = cur.fetchone()
+            if row and row.get("responded_at"):
+                row["responded_at"] = row["responded_at"].isoformat()
+            return row
+
+
 def handle_mqtt_challenge(
     raw_payload: bytes | str,
     candidate_id: str,
