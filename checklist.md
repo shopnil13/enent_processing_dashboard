@@ -15,17 +15,17 @@
 - [x] Single clean commit: `feat(db): set up project foundation, migrations, and db pool`
 
 ## Milestone 2: Events Ingestion Module (`POST /api/events`)
-- [ ] Implement `src/modules/events/validation.py` (pure validation logic)
-- [ ] Implement `src/modules/events/repository.py` (raw SQL for events, attempts, advisory locks)
-- [ ] Implement `src/modules/events/service.py` (COUNT / VOID business logic, advisory locks, resolve pending voids)
-- [ ] Implement `src/modules/events/routes.py` (`POST /api/events`)
-- [ ] Mount events router in `src/main.py`
-- [ ] Implement required tests:
+- [x] Implement `src/modules/events/validation.py` (pure validation logic)
+- [x] Implement `src/modules/events/repository.py` (raw SQL for events, attempts, advisory locks)
+- [x] Implement `src/modules/events/service.py` (COUNT / VOID business logic, advisory locks, resolve pending voids)
+- [x] Implement `src/modules/events/routes.py` (`POST /api/events`)
+- [x] Mount events router in `src/main.py`
+- [x] Implement required tests:
   - Test 1: COUNT + total calculation
   - Test 2: Duplicate not double-counted (idempotency)
   - Test 3: VOID-before-COUNT auto resolution
-- [ ] Verify all tests pass
-- [ ] Single clean commit: `feat(events): implement event ingestion, validation, and void resolution`
+- [x] Verify all tests pass
+- [x] Single clean commit: `feat(events): implement event ingestion, validation, and void resolution`
 
 ## Milestone 3: State & Acknowledgment Modules
 - [ ] Implement `src/modules/state/queries.py` & `service.py` (durable SQL summaries, pending events, exceptions)
