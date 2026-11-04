@@ -60,15 +60,15 @@
 - [x] Single clean commit: `feat(frontend): implement dashboard ui and static serving`
 
 ## Milestone 6: Extra-Credit Tests & Documentation
-- [ ] Add extra-credit test cases:
+- [x] Add extra-credit test cases:
   - Conflict preserves original event
   - Mixed batch handling (valid + invalid)
   - Multi-threaded concurrent submissions for same event_id
   - Two pending VOIDs resolution order
   - Restart recovery verification
   - Source mismatch VOID rejection
-- [ ] Update `README.md` with complete setup instructions, architecture, and live review guide
-- [ ] Create `TECHNICAL_EXPLANATION.md` & `AI_USAGE.md`
-- [ ] Final verification of entire test suite and server startup
-- [ ] Single clean commit: `docs(all): complete test suite, technical explanation, and user guide`
+- [x] Update `README.md` with complete setup instructions, architecture, and live review guide
+- [x] Create `TECHNICAL_EXPLANATION.md` & `AI_USAGE.md`
+- [x] Final verification of entire test suite and server startup
+- [x] Single clean commit: `docs(all): complete test suite, technical explanation, and user guide`
 
