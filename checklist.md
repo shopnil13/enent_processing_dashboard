@@ -38,15 +38,15 @@
 - [x] Single clean commit: `feat(state): implement state reporting and event acknowledgment`
 
 ## Milestone 4: MQTT Worker Module
-- [ ] Implement `src/modules/mqtt/protocol.py` (envelope parsing, SHA-256 canonical digest)
-- [ ] Implement `src/modules/mqtt/service.py` (challenge handling, idempotency via `mqtt_challenges`, expiration)
-- [ ] Implement `src/modules/mqtt/worker.py` (paho-mqtt client, heartbeat thread, last will, loop_start)
-- [ ] Implement `GET /api/mqtt/status` for dashboard visibility
-- [ ] Wire MQTT worker lifecycle in `src/main.py` lifespan
-- [ ] Implement required test:
+- [x] Implement `src/modules/mqtt/protocol.py` (envelope parsing, SHA-256 canonical digest)
+- [x] Implement `src/modules/mqtt/service.py` (challenge handling, idempotency via `mqtt_challenges`, expiration)
+- [x] Implement `src/modules/mqtt/worker.py` (paho-mqtt client, heartbeat thread, last will, loop_start)
+- [x] Implement `GET /api/mqtt/status` for dashboard visibility
+- [x] Wire MQTT worker lifecycle in `src/main.py` lifespan
+- [x] Implement required test:
   - Test 5: Repeated MQTT challenge returns stored response without reprocessing
-- [ ] Verify all tests pass
-- [ ] Single clean commit: `feat(mqtt): implement mqtt challenge worker and protocol handler`
+- [x] Verify all tests pass
+- [x] Single clean commit: `feat(mqtt): implement mqtt challenge worker and protocol handler`
 
 ## Milestone 5: Frontend Dashboard
 - [ ] Initialize React + Vite + TypeScript in `frontend/`
