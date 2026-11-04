@@ -49,15 +49,15 @@
 - [x] Single clean commit: `feat(mqtt): implement mqtt challenge worker and protocol handler`
 
 ## Milestone 5: Frontend Dashboard
-- [ ] Initialize React + Vite + TypeScript in `frontend/`
-- [ ] Implement `JsonSubmitForm` (textarea, validation, results display)
-- [ ] Implement `SummaryCards` (6 indicators from `GET /api/state?view=summary`)
-- [ ] Implement `StateTable` (pending & exceptions views, select & acknowledge button)
-- [ ] Implement `MqttPanel` (live status, metrics, challenge stats)
-- [ ] Implement `frontend/src/api.ts` (typed API client, 5s polling, error handling)
-- [ ] Connect FastAPI static mounting for `frontend/dist` in production
-- [ ] Test frontend build and end-to-end functionality
-- [ ] Single clean commit: `feat(frontend): implement dashboard ui and static serving`
+- [x] Initialize React + Vite + TypeScript in `frontend/`
+- [x] Implement `JsonSubmitForm` (textarea, validation, results display)
+- [x] Implement `SummaryCards` (6 indicators from `GET /api/state?view=summary`)
+- [x] Implement `StateTable` (pending & exceptions views, select & acknowledge button)
+- [x] Implement `MqttPanel` (live status, metrics, challenge stats)
+- [x] Implement `frontend/src/api.ts` (typed API client, 5s polling, error handling)
+- [x] Connect FastAPI static mounting for `frontend/dist` in production
+- [x] Test frontend build and end-to-end functionality
+- [x] Single clean commit: `feat(frontend): implement dashboard ui and static serving`
 
 ## Milestone 6: Extra-Credit Tests & Documentation
 - [ ] Add extra-credit test cases:

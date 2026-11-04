@@ -1,8 +1,11 @@
 import os
 import logging
+from pathlib import Path
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse, JSONResponse
 from src.shared.db import init_pool, close_pool
 from src.modules.events.routes import router as events_router
 from src.modules.state.routes import router as state_router
@@ -42,7 +45,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount module routers
+# Mount API module routers
 app.include_router(events_router)
 app.include_router(state_router)
 app.include_router(ack_router)
@@ -52,3 +55,20 @@ app.include_router(mqtt_router)
 @app.get("/health")
 def health_check():
     return {"status": "ok"}
+
+
+# Serve built frontend if available
+frontend_dist = Path(__file__).resolve().parent.parent / "frontend" / "dist"
+if frontend_dist.exists() and (frontend_dist / "index.html").exists():
+    logger.info(f"Serving frontend static build from {frontend_dist}")
+    if (frontend_dist / "assets").exists():
+        app.mount("/assets", StaticFiles(directory=frontend_dist / "assets"), name="assets")
+
+    @app.get("/{full_path:path}")
+    async def serve_frontend(full_path: str):
+        if full_path.startswith("api"):
+            return JSONResponse(status_code=404, content={"error": "Not found"})
+        file_path = frontend_dist / full_path
+        if file_path.is_file():
+            return FileResponse(file_path)
+        return FileResponse(frontend_dist / "index.html")
